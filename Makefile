@@ -25,12 +25,14 @@ clean: ## remove files created during build pipeline
 mod: ## go mod tidy
 	$(call print-target)
 	go mod tidy
-	cd tools && go mod tidy
 
 .PHONY: inst
 inst: ## go install tools
 	$(call print-target)
-	cd tools && go install $(shell cd tools && go list -f '{{ join .Imports " " }}' -tags=tools)
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.51.2
+	go install github.com/goreleaser/goreleaser@v1.15.2
+	go install mvdan.cc/gofumpt@v0.4.0
+
 
 .PHONY: gen
 gen: ## go generate
