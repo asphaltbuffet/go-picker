@@ -1,12 +1,8 @@
-// Application which greets you.
+// Package main is the entry point for the CLI
 package main
 
-import "fmt"
+import "github.com/asphaltbuffet/go-picker/cmd"
 
 func main() {
-	fmt.Println(greet())
-}
-
-func greet() string {
-	return "Hi!"
+	cmd.Execute()
 }

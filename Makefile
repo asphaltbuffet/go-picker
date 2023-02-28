@@ -1,9 +1,13 @@
 SHELL := /bin/bash
 
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := dev
 .PHONY: all
 all: ## build pipeline
-all: mod inst gen build spell lint test
+all: mod inst gen build test
+
+.PHONY: dev
+dev: ## dev build with linting
+dev: gen build lint test
 
 .PHONY: ci
 ci: ## CI build pipeline
@@ -16,8 +20,8 @@ help:
 .PHONY: clean
 clean: ## remove files created during build pipeline
 	$(call print-target)
-	rm -rf dist
-	rm -f coverage.*
+	rm -rf dist || true
+	rm -rf bin || true
 	rm -f '"$(shell go env GOCACHE)/../golangci-lint"'
 	go clean -i -cache -testcache -modcache -fuzzcache -x
 
@@ -25,12 +29,13 @@ clean: ## remove files created during build pipeline
 mod: ## go mod tidy
 	$(call print-target)
 	go mod tidy
-	cd tools && go mod tidy
 
 .PHONY: inst
 inst: ## go install tools
 	$(call print-target)
-	cd tools && go install $(shell cd tools && go list -f '{{ join .Imports " " }}' -tags=tools)
+	go install github.com/goreleaser/goreleaser@v1.15.2
+	go install mvdan.cc/gofumpt@v0.4.0
+
 
 .PHONY: gen
 gen: ## go generate
@@ -41,12 +46,7 @@ gen: ## go generate
 build: ## goreleaser build
 build:
 	$(call print-target)
-	goreleaser build --rm-dist --single-target --snapshot
-
-.PHONY: spell
-spell: ## misspell
-	$(call print-target)
-	misspell -error -locale=US -w **.md
+	goreleaser build --clean --single-target --snapshot
 
 .PHONY: lint
 lint: ## golangci-lint
@@ -56,8 +56,9 @@ lint: ## golangci-lint
 .PHONY: test
 test: ## go test
 	$(call print-target)
-	go test -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./... ./...
-	go tool cover -html=coverage.out -o coverage.html
+	mkdir -p bin || true
+	go test -race -covermode=atomic -coverprofile=bin/coverage.out -coverpkg=./... ./...
+	go tool cover -html=bin/coverage.out -o bin/coverage.html
 
 .PHONY: diff
 diff: ## git diff

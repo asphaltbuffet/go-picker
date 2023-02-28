@@ -21,5 +21,7 @@
     "go.lintTool": "golangci-lint",
     "go.lintFlags": [
         "--fast"
-    ]
+    ],
+    "go.formatTool": "gofumpt",
+    "go.coverMode": "atomic"
 }
